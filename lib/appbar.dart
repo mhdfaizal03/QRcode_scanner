@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gotech_app/decoration.dart';
 
 class AppBarWidget extends StatelessWidget {
-  Function() onTap;
-  AppBarWidget({super.key, required this.onTap});
+  final VoidCallback onTap;
+  const AppBarWidget({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -10,12 +11,17 @@ class AppBarWidget extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white54,
-            shape: BoxShape.circle,
+        child: const GlassContainer(
+          padding: EdgeInsets.zero,
+          borderRadius: 100,
+          opacity: 0.1,
+          child: Center(
+            child: Icon(
+              Icons.chevron_left_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
-          child: const Icon(Icons.arrow_left),
         ),
       ),
     );

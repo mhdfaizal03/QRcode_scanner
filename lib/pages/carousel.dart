@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gotech_app/pages/Page_2.dart';
-import 'package:gotech_app/pages/page_1.dart';
-import 'package:gotech_app/pages/page_3.dart';
+import 'package:gotech_app/pages/scanner_page.dart';
+import 'package:gotech_app/pages/dashboard_page.dart';
+import 'package:gotech_app/pages/input_page.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Carousel extends StatefulWidget {
@@ -37,10 +37,10 @@ class _CarouselState extends State<Carousel> {
                     isLastPage = value < 2;
                   });
                 },
-                children: [
-                  const Page1(),
-                  const Page2(),
-                  Page3(),
+                children: const [
+                  DashboardPage(),
+                  ScannerPage(),
+                  InputPage(),
                 ],
               ),
               Container(
