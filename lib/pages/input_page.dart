@@ -59,48 +59,99 @@ class _InputPageState extends State<InputPage> {
         ),
         body: SafeArea(
           child: MaxWidthContainer(
-            maxWidth: 800,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Center(
-                    child: EntranceAnimation(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 60),
-                          _buildPreviewBox(),
-                          const SizedBox(height: 40),
-                          _buildInputFields(),
-                          const SizedBox(height: 40),
-                          const Text(
-                            'The preview updates instantly as you type.',
-                            style: TextStyle(color: Colors.white24, fontSize: 12),
-                          ),
-                          const SizedBox(height: 40),
-                          _buildBottomBar(context),
-                          const SizedBox(height: 60),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
+            maxWidth: UiConstants.maxContentWidth,
+            child: ResponsiveLayout(
+              mobile: _buildMobileLayout(context),
+              tablet: _buildWideLayout(context),
+              desktop: _buildWideLayout(context),
+            ),
           ),
         ),
       ),
     ));
   }
 
-  Widget _buildPreviewBox() {
+  Widget _buildMobileLayout(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final double padding = UiConstants.mainPadding(context);
+      return SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: padding),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: EntranceAnimation(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: padding * 2),
+                  _buildPreviewBox(context, constraints),
+                  SizedBox(height: padding),
+                  _buildInputFields(),
+                  SizedBox(height: padding),
+                  const Text(
+                    'The preview updates instantly as you type.',
+                    style: TextStyle(color: Colors.white24, fontSize: 12),
+                  ),
+                  SizedBox(height: padding),
+                  _buildBottomBar(context),
+                  SizedBox(height: padding * 2),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildWideLayout(BuildContext context) {
+    final double padding = UiConstants.mainPadding(context);
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(padding),
+                child: EntranceAnimation(
+                  child: _buildPreviewBox(context, constraints),
+                ),
+              ),
+            );
+          }),
+        ),
+        VerticalDivider(width: 1, color: Colors.white.withValues(alpha: 0.05)),
+        Expanded(
+          flex: 1,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(padding),
+            child: EntranceAnimation(
+              delay: const Duration(milliseconds: 200),
+              child: Column(
+                children: [
+                  _buildInputFields(),
+                  SizedBox(height: padding),
+                  _buildBottomBar(context),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviewBox(BuildContext context, BoxConstraints constraints) {
+    final double qrContainerSize = ResponsiveSizer.scale(context, 220, max: constraints.maxHeight * 0.5);
+    final double qrInnerSize = qrContainerSize * 0.7;
+
     return GlassContainer(
       borderRadius: 30,
-      padding: const EdgeInsets.all(30),
+      padding: EdgeInsets.all(qrContainerSize * 0.1),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Text('LIVE PREVIEW',
               style: TextStyle(
@@ -108,9 +159,9 @@ class _InputPageState extends State<InputPage> {
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
                   color: Colors.blueAccent)),
-          const SizedBox(height: 25),
+          SizedBox(height: qrContainerSize * 0.08),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(qrContainerSize * 0.08),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -123,11 +174,11 @@ class _InputPageState extends State<InputPage> {
               ],
             ),
             child: SizedBox(
-              width: 180,
-              height: 180,
+              width: qrInnerSize,
+              height: qrInnerSize,
               child: PrettyQrView.data(
                 data: _qrData.isEmpty ? 'VISIONARY QR' : _qrData,
-                errorCorrectLevel: QrErrorCorrectLevel.H, // Maximum resilience for custom styles
+                errorCorrectLevel: QrErrorCorrectLevel.H,
                 decoration: const PrettyQrDecoration(
                   shape: PrettyQrSmoothSymbol(
                     roundFactor: 1,

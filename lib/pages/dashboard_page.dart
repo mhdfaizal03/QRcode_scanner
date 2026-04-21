@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gotech_app/decoration.dart';
@@ -24,12 +25,13 @@ class DashboardPage extends StatelessWidget {
           backgroundColor: Colors.transparent,
           body: SafeArea(
             child: MaxWidthContainer(
-              maxWidth: 1200,
+              maxWidth: UiConstants.maxContentWidth,
               child: LayoutBuilder(builder: (context, constraints) {
+                final double padding = UiConstants.mainPadding(context);
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+                  padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding * 1.5),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight - 80), // account for vertical padding
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight - (padding * 3)),
                     child: Center(
                       child: EntranceAnimation(
                         child: isWide ? _buildWideLayout(context) : _buildNarrowLayout(context),
@@ -107,36 +109,42 @@ class DashboardPage extends StatelessWidget {
   // --- Component Widgets ---
 
   Widget _buildBranding({bool centerText = false}) {
-    return Column(
-      crossAxisAlignment: centerText ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Visionary',
-          textAlign: centerText ? TextAlign.center : TextAlign.left,
-          style: const TextStyle(
-            fontSize: 48,
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1,
+    return Builder(builder: (context) {
+      double titleSize = ResponsiveSizer.scale(context, 48, max: 80);
+      double subTitleSize = math.max(12, ResponsiveSizer.scale(context, 14, max: 20));
+
+      return Column(
+        crossAxisAlignment: centerText ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Visionary',
+            textAlign: centerText ? TextAlign.center : TextAlign.left,
+            style: TextStyle(
+              fontSize: titleSize,
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+            ),
           ),
-        ),
-        Text(
-          'QR SCANNER & GENERATOR',
-          textAlign: centerText ? TextAlign.center : TextAlign.left,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.blueAccent,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 4,
+          Text(
+            'QR SCANNER & GENERATOR',
+            textAlign: centerText ? TextAlign.center : TextAlign.left,
+            style: TextStyle(
+              fontSize: subTitleSize,
+              color: Colors.blueAccent,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 4,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildLottieArea(BuildContext context) {
-    final double sizeFactor = ResponsiveLayout.isMobile(context) ? 0.6 : 0.4;
-    final double size = MediaQuery.of(context).size.width * sizeFactor;
+    final double padding = UiConstants.mainPadding(context);
+    final double maxPossibleSize = MediaQuery.sizeOf(context).shortestSide - (padding * 4);
+    final double size = ResponsiveSizer.scale(context, 260, max: maxPossibleSize);
 
     return Center(
       child: GestureDetector(
@@ -149,7 +157,7 @@ class DashboardPage extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: Colors.blueAccent.withValues(alpha: 0.1),
-                blurRadius: 40,
+                blurRadius: size / 4,
                 spreadRadius: 10,
               )
             ],

@@ -45,7 +45,10 @@ class HistoryPage extends StatelessWidget {
             ],
           ),
           body: MaxWidthContainer(
+            maxWidth: UiConstants.maxContentWidth,
             child: Obx(() {
+              final double padding = UiConstants.mainPadding(context);
+              
               if (controller.history.isEmpty) {
                 return Center(
                   child: EntranceAnimation(
@@ -53,16 +56,24 @@ class HistoryPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.inventory_2_outlined,
-                            size: 100, color: Colors.white.withValues(alpha: 0.1)),
-                        const SizedBox(height: 30),
-                        const Text(
+                            size: ResponsiveSizer.scale(context, 100, max: 150), 
+                            color: Colors.white.withValues(alpha: 0.1)),
+                        SizedBox(height: padding),
+                        Text(
                           'Your vault is empty',
-                          style: TextStyle(color: Colors.white24, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white24, 
+                            fontSize: ResponsiveSizer.scale(context, 18, max: 24), 
+                            fontWeight: FontWeight.bold
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
+                        Text(
                           'Scanned and created codes appear here.',
-                          style: TextStyle(color: Colors.white10, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.white10, 
+                            fontSize: ResponsiveSizer.scale(context, 12, max: 16)
+                          ),
                         ),
                       ],
                     ),
@@ -74,11 +85,11 @@ class HistoryPage extends StatelessWidget {
 
               return isWide
                   ? GridView.builder(
-                      padding: const EdgeInsets.all(32),
+                      padding: EdgeInsets.all(padding),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: ResponsiveLayout.isDesktop(context) ? 4 : 2,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 20,
+                        crossAxisSpacing: padding / 2,
+                        mainAxisSpacing: padding / 2,
                         childAspectRatio: 2.5,
                       ),
                       itemCount: controller.history.length,
@@ -88,7 +99,7 @@ class HistoryPage extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(padding),
                       itemCount: controller.history.length,
                       itemBuilder: (context, index) {
                         final item = controller.history[index];

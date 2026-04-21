@@ -110,8 +110,9 @@ class CustomizerPage extends StatelessWidget {
 
   Widget _buildMobileLayout(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
+      final double padding = UiConstants.mainPadding(context);
       return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: padding),
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Center(
@@ -120,17 +121,17 @@ class CustomizerPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
-                  _buildQrPreview(),
-                  const SizedBox(height: 40),
+                  SizedBox(height: padding * 2),
+                  _buildQrPreview(context, constraints),
+                  SizedBox(height: padding),
                   const Text(
                     'Customize the dots, eyes, and colors above.',
                     style: TextStyle(color: Colors.white10, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: padding),
                   _buildBottomActions(context),
-                  const SizedBox(height: 60),
+                  SizedBox(height: padding * 2),
                 ],
               ),
             ),
@@ -141,36 +142,42 @@ class CustomizerPage extends StatelessWidget {
   }
 
   Widget _buildWideLayout(BuildContext context) {
+    final double padding = UiConstants.mainPadding(context);
     return Row(
       children: [
         Expanded(
-          flex: 3,
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(40),
-              child: EntranceAnimation(
-                child: _buildQrPreview(),
+          flex: 4, // More weight to the preview on wide screens
+          child: LayoutBuilder(builder: (context, constraints) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(padding),
+                child: EntranceAnimation(
+                  child: _buildQrPreview(context, constraints),
+                ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
         VerticalDivider(width: 1, color: Colors.white.withValues(alpha: 0.05)),
         Expanded(
-          flex: 2,
-          child: EntranceAnimation(
-            delay: const Duration(milliseconds: 200),
-            child: const QrCustomizerPanel(showCloseButton: false),
+          flex: 3,
+          child: const EntranceAnimation(
+            delay: Duration(milliseconds: 200),
+            child: QrCustomizerPanel(showCloseButton: false),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildQrPreview() {
+  Widget _buildQrPreview(BuildContext context, BoxConstraints constraints) {
+    final double qrContainerSize = ResponsiveSizer.scale(context, 280, max: constraints.maxHeight * 0.55);
+    final double qrInnerSize = qrContainerSize * 0.75;
+
     return Screenshot(
       controller: screenshotController,
       child: Obx(() => Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(qrContainerSize * 0.08),
         decoration: BoxDecoration(
           color: customizationController.qrBackgroundColor.value,
           borderRadius: BorderRadius.circular(30),
@@ -185,12 +192,12 @@ class CustomizerPage extends StatelessWidget {
         child: Stack(
           children: [
             SizedBox(
-              width: 240,
-              height: 240,
+              width: qrInnerSize,
+              height: qrInnerSize,
               child: Obx(() {
                 final qrWidget = PrettyQrView.data(
                   data: controller.text.isEmpty ? 'VISIONARY' : controller.text,
-                  errorCorrectLevel: QrErrorCorrectLevel.H, // Maximum resilience for custom styles
+                  errorCorrectLevel: QrErrorCorrectLevel.H,
                   decoration: customizationController.advancedDecoration,
                 );
 

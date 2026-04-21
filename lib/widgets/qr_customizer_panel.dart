@@ -1,3 +1,5 @@
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +48,9 @@ class QrCustomizerPanel extends StatelessWidget {
             const SizedBox(height: 10),
             Obx(() => _sliderRow('Dot Rounding', controller.dotRoundness.value,
                 (v) => controller.setDotRoundness(v))),
+            const SizedBox(height: 15),
+            _buildShapeSelector(controller),
+            const SizedBox(height: 15),
             Obx(() => _sliderRow('Eye Rounding', controller.eyeRoundness.value,
                 (v) => controller.setEyeRoundness(v))),
 
@@ -175,30 +180,50 @@ class QrCustomizerPanel extends StatelessWidget {
   Widget _colorPickerTile(String label, Color color,
       Function(Color) onColorChanged, BuildContext context) {
     return InkWell(
-      onTap: () async {
-        final Color newColor = await showColorPickerDialog(
-          context,
-          color,
-          title: Text(label, style: Theme.of(context).textTheme.titleLarge),
-          width: 40,
-          height: 40,
-          spacing: 3,
-          runSpacing: 3,
-          borderRadius: 4,
-          wheelDiameter: 165,
-          enableOpacity: true,
-          showColorCode: true,
-          colorCodeHasColor: true,
-          pickersEnabled: const <ColorPickerType, bool>{
-            ColorPickerType.both: false,
-            ColorPickerType.primary: true,
-            ColorPickerType.accent: true,
-            ColorPickerType.bw: false,
-            ColorPickerType.custom: true,
-            ColorPickerType.wheel: true,
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: const Color(0xff1a1a2e),
+              title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: ColorPicker(
+                  color: color,
+                  onColorChanged: (Color c) {
+                    onColorChanged(c);
+                  },
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  spacing: 10,
+                  runSpacing: 10,
+                  wheelDiameter: 180,
+                  enableOpacity: true,
+                  showColorCode: true,
+                  colorCodeHasColor: true,
+                  pickersEnabled: const <ColorPickerType, bool>{
+                    ColorPickerType.both: false,
+                    ColorPickerType.primary: true,
+                    ColorPickerType.accent: true,
+                    ColorPickerType.bw: false,
+                    ColorPickerType.custom: true,
+                    ColorPickerType.wheel: true,
+                  },
+                  copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                    longPressMenu: true,
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('DONE', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
           },
         );
-        onColorChanged(newColor);
       },
       child: GlassContainer(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -225,6 +250,57 @@ class QrCustomizerPanel extends StatelessWidget {
     );
   }
 
+  Widget _buildShapeSelector(QrCustomizationController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Module Shape', style: TextStyle(fontSize: 14)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _shapeItem(controller, QrModuleType.smooth, Icons.bubble_chart_rounded, 'Smooth'),
+            const SizedBox(width: 12),
+            _shapeItem(controller, QrModuleType.squares, Icons.grid_view_rounded, 'Squares'),
+            const SizedBox(width: 12),
+            _shapeItem(controller, QrModuleType.rounded, Icons.circle_rounded, 'Rounded'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _shapeItem(QrCustomizationController controller, QrModuleType type, IconData icon, String label) {
+    return Obx(() {
+      final isSelected = controller.moduleType.value == type;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            controller.setModuleType(type);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white10,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: isSelected ? Colors.blueAccent : Colors.white10,
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, color: isSelected ? Colors.blueAccent : Colors.white38, size: 20),
+                const SizedBox(height: 4),
+                Text(label, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white : Colors.white38)),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   Widget _buildLogoSelector(QrCustomizationController controller) {
     final List<String?> logos = [
       null, // None
@@ -236,47 +312,92 @@ class QrCustomizerPanel extends StatelessWidget {
 
     return SizedBox(
       height: 60,
-      child: ListView.builder(
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        itemCount: logos.length,
-        itemBuilder: (context, index) {
-          final logo = logos[index];
-          return Obx(() {
-            final isSelected = controller.selectedLogo.value == logo;
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                controller.setLogo(logo);
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 12),
-                width: 50,
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white10,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: isSelected ? Colors.blueAccent : Colors.white10,
-                    width: 2,
+        children: [
+          // PICKER BUTTON
+          GestureDetector(
+            onTap: () async {
+              final picker = ImagePicker();
+              final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+              if (image != null) {
+                HapticFeedback.mediumImpact();
+                controller.setLogo(image.path, isCustom: true);
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 12),
+              width: 50,
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3), width: 2),
+              ),
+              child: const Center(child: Icon(Icons.add_photo_alternate_rounded, color: Colors.blueAccent, size: 20)),
+            ),
+          ),
+
+          ...logos.map((logo) {
+            return Obx(() {
+              final isSelected = controller.selectedLogo.value == logo && controller.customLogoPath.value == null;
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  controller.setLogo(logo);
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white10,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: isSelected ? Colors.blueAccent : Colors.white10,
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(
+                    child: logo == null
+                        ? const Icon(Icons.block_rounded, size: 20, color: Colors.white24)
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              logo,
+                              width: 30,
+                              height: 30,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.image_not_supported_rounded, size: 20, color: Colors.white24),
+                            ),
+                          ),
                   ),
                 ),
-                child: Center(
-                  child: logo == null
-                      ? const Icon(Icons.block_rounded, size: 20, color: Colors.white24)
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            logo,
-                            width: 30,
-                            height: 30,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.image_not_supported_rounded, size: 20, color: Colors.white24),
-                          ),
-                        ),
+              );
+            });
+          }),
+          
+          // CUSTOM LOGO PREVIEW (if exists)
+          Obx(() {
+            if (controller.customLogoPath.value == null) return const SizedBox.shrink();
+            return Container(
+              margin: const EdgeInsets.only(right: 12),
+              width: 50,
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.blueAccent, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(controller.customLogoPath.value!),
+                  width: 30,
+                  height: 30,
+                  fit: BoxFit.cover,
                 ),
               ),
             );
-          });
-        },
+          }),
+        ],
       ),
     );
   }

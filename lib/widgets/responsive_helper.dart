@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gotech_app/decoration.dart';
 
 class ResponsiveLayout extends StatelessWidget {
   final Widget mobile;
@@ -17,16 +18,16 @@ class ResponsiveLayout extends StatelessWidget {
 
   static bool isTablet(BuildContext context) =>
       MediaQuery.of(context).size.width >= 600 &&
-      MediaQuery.of(context).size.width < 1100;
+      MediaQuery.of(context).size.width < 1200;
 
   static bool isDesktop(BuildContext context) =>
-      MediaQuery.of(context).size.width >= 1100;
+      MediaQuery.of(context).size.width >= 1200;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 1100) {
+        if (constraints.maxWidth >= 1200) {
           return desktop;
         } else if (constraints.maxWidth >= 600) {
           return tablet ?? mobile;
@@ -45,7 +46,7 @@ class MaxWidthContainer extends StatelessWidget {
   const MaxWidthContainer({
     super.key,
     required this.child,
-    this.maxWidth = 1200,
+    this.maxWidth = UiConstants.maxContentWidth,
   });
 
   @override
